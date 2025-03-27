@@ -1,0 +1,17 @@
+{% extends 'sb_admin/base.html' %}
+{% block title %}Excluir Componente{% endblock %}
+
+{% block content %}
+<h2>Confirmar Exclusão</h2>
+
+<div class="alert alert-warning">
+    Tem certeza que deseja excluir o componente:
+    <strong>{{ componente.name }}</strong>?
+</div>
+
+<form method="POST">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sim, excluir</button>
+    <a href="{% url 'componentes:lista' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

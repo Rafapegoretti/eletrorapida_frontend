@@ -1,0 +1,38 @@
+{% extends 'sb_admin/base.html' %}
+{% block title %}Usuários{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Usuários do Sistema</h2>
+
+<a href="{% url 'usuarios:criar' %}" class="btn btn-success mb-3">+ Novo Usuário</a>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-light">
+        <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th style="width: 180px;">Ações</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for usuario in usuarios %}
+        <tr>
+            <td>{{ usuario.username }}</td>
+            <td>{{ usuario.email }}</td>
+            <td>
+                <a href="{% url 'usuarios:editar' usuario.id %}" class="btn btn-sm btn-primary">Editar</a>
+                {% if usuario.email != "admin@admin.com" %}
+                <a href="{% url 'usuarios:excluir' usuario.id %}" class="btn btn-sm btn-danger" title="Excluir usuário">
+                    <i class="fas fa-trash-alt"></i> Excluir
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="4" class="text-center">Nenhum usuário encontrado.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends 'sb_admin/base.html' %}
+{% block title %}{{ usuario|default_if_none:"Novo Usuário" }}{% endblock %}
+
+{% block content %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label for="name" class="form-label">Nome</label>
+        <input type="text" class="form-control" id="name" name="name" required
+            value="{{ usuario.username|default:'' }}">
+    </div>
+
+    <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required
+            value="{{ usuario.email|default:'' }}">
+    </div>
+
+    <div class="mb-3">
+        <label for="password" class="form-label">
+            Senha {% if usuario %}<small>(preencha apenas se quiser alterar)</small>{% endif %}
+        </label>
+        <input type="password" class="form-control" id="password" name="password">
+    </div>
+
+    <button type="submit" class="btn btn-primary">Salvar</button>
+    <a href="{% url 'usuarios:lista' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}

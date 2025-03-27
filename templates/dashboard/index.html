@@ -1,0 +1,88 @@
+{% extends 'sb_admin/base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Dashboard</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">📊 Termos mais buscados</div>
+            <div class="card-body">
+                <canvas id="buscaChart"></canvas>
+                {{ most_frequent_searches|json_script:"most_frequent_searches" }}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">⚠️ Estoque Crítico</div>
+            <div class="card-body">
+                <ul class="list-group">
+                    {% for item in alerts %}
+                    <li class="list-group-item d-flex justify-content-between">
+                        {{ item.name }} <span class="badge bg-danger">{{ item.quantity }}</span>
+                    </li>
+                    {% empty %}
+                    <li class="list-group-item">Nenhum alerta de estoque</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">🔍 Buscas sem resultado</div>
+    <div class="card-body">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Termo</th>
+                    <th>Qtd. de buscas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in missing_searches %}
+                <tr>
+                    <td>{{ item.search_term }}</td>
+                    <td>{{ item.count }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">Nenhum termo sem resultado</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const dataFromTemplate = JSON.parse(document.getElementById('most_frequent_searches').textContent);
+    const ctx = document.getElementById('buscaChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: dataFromTemplate.map(item => item.search_term),
+            datasets: [{
+                label: 'Frequência de Busca',
+                data: dataFromTemplate.map(item => item.count),
+                backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                borderColor: 'rgba(54, 162, 235, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

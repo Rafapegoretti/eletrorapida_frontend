@@ -1,0 +1,40 @@
+{% extends 'sb_admin/base.html' %}
+{% block title %}Novo Componente{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Novo Componente</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label>Nome*</label>
+        <input type="text" name="name" class="form-control" required value="{{ componente.name|default_if_none:'' }}">
+    </div>
+    <div class="mb-3">
+        <label>Descrição</label>
+        <textarea name="description" class="form-control">{{ componente.description|default_if_none:'' }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label>Quantidade*</label>
+        <input type="number" name="quantity" class="form-control" required
+            value="{{ componente.quantity|default_if_none:'' }}">
+    </div>
+    <div class="mb-3">
+        <label>Localização</label>
+        <input type="text" name="location_reference" class="form-control"
+            value="{{ componente.location_reference|default_if_none:'' }}">
+    </div>
+    <div class="mb-3">
+        <label>Imagem do Produto</label>
+        <input type="file" name="image" accept="image/*" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label>Datasheet (PDF)</label>
+        <input type="file" name="datasheet" accept="application/pdf" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">
+        {% if componente %}Atualizar{% else %}Salvar{% endif %}
+    </button>
+    <a href="{% url 'componentes:lista' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endblock %}
