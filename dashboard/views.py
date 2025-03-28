@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 import requests
 from django.contrib import messages
+from django.conf import settings
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = settings.API_URL
 
 
 def dashboard_home(request):

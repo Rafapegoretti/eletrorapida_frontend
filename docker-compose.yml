@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  web:
+    build: .
+    container_name: frontend_eletronica
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    command: python manage.py runserver 0.0.0.0:8080
+    environment:
+      - DEBUG=False
+      - API_URL=http://backend:8000
+      
+    restart: unless-stopped

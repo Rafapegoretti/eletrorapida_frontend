@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 import requests
 from django.contrib import messages
+from django.conf import settings
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = settings.API_URL
 
 
 def lista_usuarios(request):
@@ -31,7 +32,7 @@ def criar_usuario(request):
         token = request.session.get("access")
         headers = {"Authorization": f"Bearer {token}"}
         dados = {
-            "name": request.POST.get("name"),
+            "username": request.POST.get("name"),
             "email": request.POST.get("email"),
             "password": request.POST.get("password"),
         }
@@ -51,7 +52,7 @@ def editar_usuario(request, id):
 
     if request.method == "POST":
         dados = {
-            "name": request.POST.get("name"),
+            "username": request.POST.get("name"),
             "email": request.POST.get("email"),
         }
         if request.POST.get("password"):

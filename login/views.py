@@ -1,24 +1,30 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import requests
+from django.conf import settings
+import json
 
-API_URL = "http://127.0.0.1:8000"  # sua API local
+API_URL = settings.API_URL
 
 
 def login_view(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
-
+        print(f"{API_URL}/auth/login/")
         response = requests.post(
-            f"{API_URL}/auth/login/", data={"username": username, "password": password}
+            f"{API_URL}/auth/login/",
+            data={
+                "username": username,
+                "password": password,
+            },
         )
 
         if response.status_code == 200:
             data = response.json()
             request.session["access"] = data["access"]
             request.session["refresh"] = data["refresh"]
-            return redirect("/componentes/")  # depois você muda para o app real
+            return redirect("/dashboard/")
         else:
             messages.error(request, "Usuário ou senha inválidos.")
 

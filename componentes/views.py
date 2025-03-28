@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect
 from django.contrib import messages
 import requests
+from django.conf import settings
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = settings.API_URL
 
 
 def lista_componentes(request):
@@ -89,7 +90,7 @@ def editar_componente(request, id):
 
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Primeiro: buscar dados do componente
+    # buscar dados do componente
     response = requests.get(f"{API_URL}/components/{id}/", headers=headers)
     if response.status_code != 200:
         messages.error(request, "Componente não encontrado.")
