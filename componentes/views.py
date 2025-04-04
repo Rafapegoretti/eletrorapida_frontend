@@ -51,7 +51,7 @@ def criar_componente(request):
         descricao = request.POST.get("description")
         quantidade = request.POST.get("quantity")
         local = request.POST.get("location_reference")
-        imagem = request.FILES.get("image")
+        imagem = request.FILES.get("product_image")
         datasheet = request.FILES.get("datasheet")
 
         data = {
@@ -59,11 +59,15 @@ def criar_componente(request):
             "description": descricao,
             "quantity": quantidade,
             "location_reference": local,
+            "product_image": imagem,
         }
 
+        print(data)
+
         files = {}
+        print(imagem)
         if imagem:
-            files["image"] = imagem
+            files["product_image"] = imagem
         if datasheet:
             files["datasheet"] = datasheet
 
@@ -107,10 +111,12 @@ def editar_componente(request, id):
         }
 
         files = {}
-        image = request.FILES.get("image")
+        image = request.FILES.get("product_image")
         datasheet = request.FILES.get("datasheet")
+
+        print(image)
         if image:
-            files["image"] = image
+            files["product_image"] = image
         if datasheet:
             files["datasheet"] = datasheet
 
@@ -157,4 +163,27 @@ def excluir_componente(request, id):
         )
     else:
         messages.error(request, "Componente não encontrado.")
+        return redirect("componentes:lista")
+
+
+def detalhar_componente(request, id):
+    token = request.session.get("access")
+    if not token:
+        messages.error(request, "Você precisa estar logado.")
+        return redirect("login:login")
+
+    headers = {"Authorization": f"Bearer {token}"}
+
+    try:
+        response = requests.get(f"{API_URL}/components/{id}/", headers=headers)
+        if response.status_code == 200:
+            componente = response.json()
+            return render(
+                request, "componentes/detalhe.html", {"componente": componente}
+            )
+        else:
+            messages.error(request, "Componente não encontrado.")
+            return redirect("componentes:lista")
+    except Exception as e:
+        messages.error(request, f"Erro inesperado: {str(e)}")
         return redirect("componentes:lista")

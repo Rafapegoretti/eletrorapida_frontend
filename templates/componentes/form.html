@@ -2,7 +2,7 @@
 {% block title %}Novo Componente{% endblock %}
 
 {% block content %}
-<h1 class="mb-4">Novo Componente</h1>
+<h1 class="mb-4">{{ componente.name|default_if_none:'Novo Componente' }}</h1>
 
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
@@ -26,7 +26,8 @@
     </div>
     <div class="mb-3">
         <label>Imagem do Produto</label>
-        <input type="file" name="image" accept="image/*" class="form-control">
+        <input type="file" name="product_image" accept="image/*" class="form-control"
+            value="{{ componente.product_image|default_if_none:'' }}">
     </div>
     <div class="mb-3">
         <label>Datasheet (PDF)</label>

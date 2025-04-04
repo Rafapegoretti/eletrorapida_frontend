@@ -31,7 +31,8 @@
             <td>
                 <a href="{% url 'componentes:editar' comp.id %}" class="btn btn-sm btn-primary">Editar</a>
                 <a href="{% url 'componentes:excluir' comp.id %}" class="btn btn-sm btn-danger">Excluir</a>
-                <a href="#" class="btn btn-sm btn-info">Detalhes</a>
+                <a href="{% url 'componentes:detalhe' comp.id %}" class="btn btn-info btn-sm">Detalhes</a>
+
             </td>
         </tr>
         {% empty %}
