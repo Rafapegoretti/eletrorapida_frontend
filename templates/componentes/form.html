@@ -10,32 +10,64 @@
         <label>Nome*</label>
         <input type="text" name="name" class="form-control" required value="{{ componente.name|default_if_none:'' }}">
     </div>
+
     <div class="mb-3">
         <label>Descrição</label>
         <textarea name="description" class="form-control">{{ componente.description|default_if_none:'' }}</textarea>
     </div>
+
     <div class="mb-3">
         <label>Quantidade*</label>
         <input type="number" name="quantity" class="form-control" required
             value="{{ componente.quantity|default_if_none:'' }}">
     </div>
+
     <div class="mb-3">
         <label>Localização</label>
         <input type="text" name="location_reference" class="form-control"
             value="{{ componente.location_reference|default_if_none:'' }}">
     </div>
+
     <div class="mb-3">
         <label>Imagem do Produto</label>
-        <input type="file" name="product_image" accept="image/*" class="form-control"
-            value="{{ componente.product_image|default_if_none:'' }}">
+        <input type="file" name="product_image" accept="image/*" class="form-control" id="productImageInput">
+        <div id="imageFileName" class="form-text text-muted mt-1">
+            {% if componente.product_image %}
+            Imagem atual: {{ componente.product_image }}
+            {% endif %}
+        </div>
     </div>
+
     <div class="mb-3">
         <label>Datasheet (PDF)</label>
-        <input type="file" name="datasheet" accept="application/pdf" class="form-control">
+        <input type="file" name="datasheet" accept="application/pdf" class="form-control" id="datasheetInput">
+        <div id="datasheetFileName" class="form-text text-muted mt-1">
+            {% if componente.datasheet %}
+            Arquivo atual: {{ componente.datasheet }}
+            {% endif %}
+        </div>
     </div>
+
     <button type="submit" class="btn btn-primary">
         {% if componente %}Atualizar{% else %}Salvar{% endif %}
     </button>
     <a href="{% url 'componentes:lista' %}" class="btn btn-secondary">Cancelar</a>
 </form>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const productInput = document.getElementById("productImageInput");
+        const datasheetInput = document.getElementById("datasheetInput");
+
+        productInput.addEventListener("change", function () {
+            const name = productInput.files.length > 0 ? productInput.files[0].name : "Nenhum arquivo selecionado.";
+            document.getElementById("imageFileName").textContent = `Selecionado: ${name}`;
+        });
+
+        datasheetInput.addEventListener("change", function () {
+            const name = datasheetInput.files.length > 0 ? datasheetInput.files[0].name : "Nenhum arquivo selecionado.";
+            document.getElementById("datasheetFileName").textContent = `Selecionado: ${name}`;
+        });
+    });
+</script>
 {% endblock %}

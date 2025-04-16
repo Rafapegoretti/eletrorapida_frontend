@@ -47,27 +47,21 @@ def criar_componente(request):
     headers = {"Authorization": f"Bearer {token}"}
 
     if request.method == "POST":
-        nome = request.POST.get("name")
-        descricao = request.POST.get("description")
-        quantidade = request.POST.get("quantity")
-        local = request.POST.get("location_reference")
-        imagem = request.FILES.get("product_image")
-        datasheet = request.FILES.get("datasheet")
-
+        # Campos de texto
         data = {
-            "name": nome,
-            "description": descricao,
-            "quantity": quantidade,
-            "location_reference": local,
-            "product_image": imagem,
+            "name": request.POST.get("name"),
+            "description": request.POST.get("description"),
+            "quantity": request.POST.get("quantity"),
+            "location_reference": request.POST.get("location_reference"),
         }
 
-        print(data)
-
+        # Arquivos
         files = {}
-        print(imagem)
-        if imagem:
-            files["product_image"] = imagem
+        image = request.FILES.get("product_image")
+        datasheet = request.FILES.get("datasheet")
+
+        if image:
+            files["product_image"] = image
         if datasheet:
             files["datasheet"] = datasheet
 
@@ -79,7 +73,9 @@ def criar_componente(request):
                 messages.success(request, "Componente criado com sucesso.")
                 return redirect("componentes:lista")
             else:
-                messages.error(request, "Erro ao criar componente.")
+                messages.error(
+                    request, f"Erro ao criar componente. Código: {response.status_code}"
+                )
         except Exception as e:
             messages.error(request, f"Erro inesperado: {str(e)}")
 
@@ -114,14 +110,15 @@ def editar_componente(request, id):
         image = request.FILES.get("product_image")
         datasheet = request.FILES.get("datasheet")
 
-        print(image)
         if image:
             files["product_image"] = image
         if datasheet:
             files["datasheet"] = datasheet
 
+        print(data)
+
         try:
-            response = requests.patch(
+            response = requests.put(
                 f"{API_URL}/components/{id}/", headers=headers, data=data, files=files
             )
             if response.status_code == 200:
@@ -178,6 +175,7 @@ def detalhar_componente(request, id):
         response = requests.get(f"{API_URL}/components/{id}/", headers=headers)
         if response.status_code == 200:
             componente = response.json()
+            print(componente)
             return render(
                 request, "componentes/detalhe.html", {"componente": componente}
             )

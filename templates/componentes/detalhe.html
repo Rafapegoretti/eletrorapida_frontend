@@ -7,7 +7,7 @@
         <div class="row g-0">
             <div class="col-md-5 p-4 text-center">
                 {% if componente.product_image %}
-                <img id="componente-img" src="{{ componente.product_image }}" class="img-fluid rounded shadow"
+                <img id="componente-img" data-src="{{ componente.product_image }}" class="img-fluid rounded shadow"
                     alt="Imagem do componente">
                 {% else %}
                 <p>Imagem não disponível.</p>
@@ -21,7 +21,7 @@
                     <p class="card-text"><strong>Localização:</strong> {{ componente.location_reference }}</p>
 
                     {% if componente.datasheet %}
-                    <a id="datasheet-link" href="{{ componente.datasheet }}" class="btn btn-primary mt-3"
+                    <a id="datasheet-link" data-href="{{ componente.datasheet }}" class="btn btn-primary mt-3"
                         target="_blank">Abrir Datasheet</a>
                     {% else %}
                     <p class="mt-3">Datasheet não disponível.</p>
@@ -34,19 +34,19 @@
     </div>
 </div>
 
-<!-- JS para corrigir URL das imagens e datasheet -->
+<!-- JS para corrigir dinamicamente a URL da imagem e do datasheet -->
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const hostnameFix = "localhost";
+        const host = "localhost:8000";
 
         const img = document.getElementById("componente-img");
-        if (img && img.src.includes("backend")) {
-            img.src = img.src.replace("backend", hostnameFix);
+        if (img && img.dataset.src) {
+            img.src = `http://${host}${img.dataset.src}`;
         }
 
         const datasheet = document.getElementById("datasheet-link");
-        if (datasheet && datasheet.href.includes("backend")) {
-            datasheet.href = datasheet.href.replace("backend", hostnameFix);
+        if (datasheet && datasheet.dataset.href) {
+            datasheet.href = `http://${host}${datasheet.dataset.href}`;
         }
     });
 </script>
