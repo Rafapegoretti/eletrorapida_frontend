@@ -1,95 +1,151 @@
+# usuarios/views.py
+
 from django.shortcuts import render, redirect
-import requests
+from django.views import View
 from django.contrib import messages
 from django.conf import settings
-
-API_URL = settings.API_URL
-
-
-def lista_usuarios(request):
-    token = request.session.get("access")
-    if not token:
-        messages.error(request, "Acesso negado. Faça login.")
-        return redirect("login:login")
-
-    headers = {"Authorization": f"Bearer {token}"}
-
-    try:
-        response = requests.get(f"{API_URL}/users/", headers=headers)
-        if response.status_code == 200:
-            usuarios = response.json()
-            return render(request, "usuarios/lista.html", {"usuarios": usuarios})
-        else:
-            messages.error(request, "Erro ao buscar usuários.")
-    except Exception as e:
-        messages.error(request, f"Erro inesperado: {e}")
-
-    return redirect("dashboard:index")
+import requests
 
 
-def criar_usuario(request):
-    if request.method == "POST":
+class UsuariosView(View):
+    """
+    Controlador das operações relacionadas a usuários do sistema.
+    """
+
+    def _get_token(self, request):
         token = request.session.get("access")
-        headers = {"Authorization": f"Bearer {token}"}
-        dados = {
-            "username": request.POST.get("name"),
-            "email": request.POST.get("email"),
-            "password": request.POST.get("password"),
-        }
-        response = requests.post(f"{API_URL}/users/", headers=headers, data=dados)
-        if response.status_code == 201:
-            messages.success(request, "Usuário criado com sucesso!")
-            return redirect("usuarios:lista")
-        else:
-            messages.error(request, "Erro ao criar usuário.")
+        if not token:
+            messages.error(request, "Acesso negado. Faça login.")
+        return token
 
-    return render(request, "usuarios/form.html")
+    def listar(self, request):
+        """
+        [GET] Lista todos os usuários cadastrados.
+        """
+        token = self._get_token(request)
+        if not token:
+            return redirect("login:login")
 
+        try:
+            response = requests.get(
+                f"{settings.API_URL}/users/",
+                headers={"Authorization": f"Bearer {token}"}
+            )
+            if response.status_code == 200:
+                usuarios = response.json()
+                return render(request, "usuarios/lista.html", {"usuarios": usuarios})
+            messages.error(request, "Erro ao buscar usuários.")
+        except Exception as e:
+            messages.error(request, f"Erro inesperado: {e}")
 
-def editar_usuario(request, id):
-    token = request.session.get("access")
-    headers = {"Authorization": f"Bearer {token}"}
+        return redirect("dashboard:index")
 
-    if request.method == "POST":
-        dados = {
-            "username": request.POST.get("name"),
-            "email": request.POST.get("email"),
-        }
-        if request.POST.get("password"):
-            dados["password"] = request.POST.get("password")
+    def criar(self, request):
+        """
+        [GET] Exibe o formulário de criação de usuário.
+        [POST] Cria um novo usuário com os dados fornecidos.
+        Campos esperados:
+            - name
+            - email
+            - password
+        """
+        token = self._get_token(request)
+        if not token:
+            return redirect("login:login")
 
-        response = requests.patch(f"{API_URL}/users/{id}/", headers=headers, data=dados)
+        if request.method == "POST":
+            dados = {
+                "username": request.POST.get("name"),
+                "email": request.POST.get("email"),
+                "password": request.POST.get("password"),
+            }
+            try:
+                response = requests.post(
+                    f"{settings.API_URL}/users/",
+                    headers={"Authorization": f"Bearer {token}"},
+                    data=dados
+                )
+                if response.status_code == 201:
+                    messages.success(request, "Usuário criado com sucesso!")
+                    return redirect("usuarios:lista")
+                messages.error(request, "Erro ao criar usuário.")
+            except Exception as e:
+                messages.error(request, f"Erro inesperado: {e}")
+
+        return render(request, "usuarios/form.html")
+
+    def editar(self, request, id):
+        """
+        [GET] Busca os dados de um usuário para edição.
+        [POST] Atualiza os dados do usuário (nome, email e opcionalmente senha).
+        """
+        token = self._get_token(request)
+        if not token:
+            return redirect("login:login")
+
+        if request.method == "POST":
+            dados = {
+                "username": request.POST.get("name"),
+                "email": request.POST.get("email"),
+            }
+            if request.POST.get("password"):
+                dados["password"] = request.POST.get("password")
+
+            try:
+                response = requests.patch(
+                    f"{settings.API_URL}/users/{id}/",
+                    headers={"Authorization": f"Bearer {token}"},
+                    data=dados
+                )
+                if response.status_code == 200:
+                    messages.success(request, "Usuário atualizado com sucesso!")
+                    return redirect("usuarios:lista")
+                messages.error(request, "Erro ao atualizar usuário.")
+            except Exception as e:
+                messages.error(request, f"Erro inesperado: {e}")
+
+        # GET ou erro: carregar dados
+        response = requests.get(
+            f"{settings.API_URL}/users/{id}/",
+            headers={"Authorization": f"Bearer {token}"}
+        )
         if response.status_code == 200:
-            messages.success(request, "Usuário atualizado com sucesso!")
-            return redirect("usuarios:lista")
-        else:
-            messages.error(request, "Erro ao atualizar usuário.")
+            usuario = response.json()
+            return render(request, "usuarios/form.html", {"usuario": usuario})
 
-    response = requests.get(f"{API_URL}/users/{id}/", headers=headers)
-    if response.status_code == 200:
-        usuario = response.json()
-        return render(request, "usuarios/form.html", {"usuario": usuario})
-
-    messages.error(request, "Usuário não encontrado.")
-    return redirect("usuarios:lista")
-
-
-def excluir_usuario(request, id):
-    token = request.session.get("access")
-    headers = {"Authorization": f"Bearer {token}"}
-
-    if request.method == "POST":
-        response = requests.delete(f"{API_URL}/users/{id}/", headers=headers)
-        if response.status_code == 204:
-            messages.success(request, "Usuário excluído com sucesso!")
-        else:
-            messages.error(request, "Erro ao excluir usuário.")
+        messages.error(request, "Usuário não encontrado.")
         return redirect("usuarios:lista")
 
-    response = requests.get(f"{API_URL}/users/{id}/", headers=headers)
-    if response.status_code == 200:
-        usuario = response.json()
-        return render(request, "usuarios/confirmar_exclusao.html", {"usuario": usuario})
+    def excluir(self, request, id):
+        """
+        [GET] Mostra tela de confirmação para exclusão de usuário.
+        [POST] Envia requisição de exclusão para a API.
+        """
+        token = self._get_token(request)
+        if not token:
+            return redirect("login:login")
 
-    messages.error(request, "Usuário não encontrado.")
-    return redirect("usuarios:lista")
+        if request.method == "POST":
+            try:
+                response = requests.delete(
+                    f"{settings.API_URL}/users/{id}/",
+                    headers={"Authorization": f"Bearer {token}"}
+                )
+                if response.status_code == 204:
+                    messages.success(request, "Usuário excluído com sucesso!")
+                else:
+                    messages.error(request, "Erro ao excluir usuário.")
+            except Exception as e:
+                messages.error(request, f"Erro inesperado: {e}")
+            return redirect("usuarios:lista")
+
+        response = requests.get(
+            f"{settings.API_URL}/users/{id}/",
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        if response.status_code == 200:
+            usuario = response.json()
+            return render(request, "usuarios/confirmar_exclusao.html", {"usuario": usuario})
+
+        messages.error(request, "Usuário não encontrado.")
+        return redirect("usuarios:lista")

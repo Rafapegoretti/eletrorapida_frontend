@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   web:
-    build: .
+    build:
+      context: .
     container_name: frontend_eletronica
     ports:
       - "8080:8080"
@@ -10,7 +11,12 @@ services:
       - .:/app
     command: python manage.py runserver 0.0.0.0:8080
     environment:
+      - DJANGO_DOCKER=1
       - DEBUG=False
-      - API_URL=http://backend:8000
-      
-    restart: unless-stopped
+      - API_URL=http://backend:8000  # o nome 'backend' resolve na rede compartilhada
+    networks:
+      - eletrorapida_net
+
+networks:
+  eletrorapida_net:
+    external: true

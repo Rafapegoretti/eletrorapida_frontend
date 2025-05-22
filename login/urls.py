@@ -1,15 +1,13 @@
 from django.urls import path
-from . import views
+from .views import LoginView
+
+view = LoginView()
 
 app_name = "login"
 
 urlpatterns = [
-    path("", views.login_view, name="login"),
-    path("logout/", views.logout_view, name="logout"),
-    path("password-reset/", views.password_reset_view, name="password_reset"),
-    path(
-        "password-reset-confirm/",
-        views.password_reset_confirm_view,
-        name="password_reset_confirm",
-    ),
+    path("", view.login, name="login"),
+    path("logout/", view.logout, name="logout"),
+    path("password-reset/", view.password_reset, name="password_reset"),
+    path("password-reset-confirm/", view.password_reset_confirm, name="password_reset_confirm"),
 ]

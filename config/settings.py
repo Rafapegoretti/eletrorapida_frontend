@@ -136,4 +136,8 @@ STATIC_URL = "static/"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-API_URL = os.getenv("API_URL", "http://backend:8000")
+
+if os.environ.get("DJANGO_DOCKER") == "1":
+    API_URL = "http://backend:8000"  # nome do serviço Docker
+else:
+    API_URL = "http://localhost:8000"  # rodando localmente

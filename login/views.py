@@ -1,77 +1,101 @@
+# login/views.py
+
 from django.shortcuts import render, redirect
 from django.contrib import messages
-import requests
+from django.views import View
 from django.conf import settings
-import json
-
-API_URL = settings.API_URL
+import requests
 
 
-def login_view(request):
-    if request.method == "POST":
-        username = request.POST.get("username")
-        password = request.POST.get("password")
-        print(f"{API_URL}/auth/login/")
-        response = requests.post(
-            f"{API_URL}/auth/login/",
-            data={
-                "username": username,
-                "password": password,
-            },
-        )
+class LoginView(View):
+    """
+    Controlador de autenticação do sistema.
+    Responsável por login, logout e recuperação de senha.
+    """
 
-        if response.status_code == 200:
-            data = response.json()
-            request.session["access"] = data["access"]
-            request.session["refresh"] = data["refresh"]
-            return redirect("/dashboard/")
-        else:
-            messages.error(request, "Usuário ou senha inválidos.")
+    def login(self, request):
+        """
+        [GET] Renderiza tela de login.
+        [POST] Realiza autenticação com username e password.
+        Armazena tokens na sessão:
+            - request.session["access"]
+            - request.session["refresh"]
+        Redireciona para /dashboard/ em caso de sucesso.
+        """
+        if request.method == "POST":
+            username = request.POST.get("username")
+            password = request.POST.get("password")
 
-    return render(request, "login/login.html")
+            try:
+                response = requests.post(
+                    f"{settings.API_URL}/auth/login/",
+                    data={"username": username, "password": password},
+                )
 
+                if response.status_code == 200:
+                    data = response.json()
+                    request.session["access"] = data["access"]
+                    request.session["refresh"] = data["refresh"]
+                    return redirect("/dashboard/")
+                messages.error(request, "Usuário ou senha inválidos.")
+            except Exception as e:
+                messages.error(request, f"Erro ao autenticar: {e}")
 
-def logout_view(request):
-    request.session.flush()
-    return redirect("login:login")
+        return render(request, "login/login.html")
 
+    def logout(self, request):
+        """
+        [GET] Realiza logout limpando a sessão do usuário.
+        Redireciona para a tela de login.
+        """
+        request.session.flush()
+        return redirect("login:login")
 
-def password_reset_view(request):
-    if request.method == "POST":
-        email = request.POST.get("email")
+    def password_reset(self, request):
+        """
+        [GET] Exibe o formulário para inserir e-mail.
+        [POST] Envia requisição para envio de link de redefinição de senha.
+        """
+        if request.method == "POST":
+            email = request.POST.get("email")
+            try:
+                response = requests.post(
+                    f"{settings.API_URL}/auth/password/reset/", data={"email": email}
+                )
+                if response.status_code == 200:
+                    messages.success(
+                        request,
+                        "Se o e-mail estiver cadastrado, enviaremos um link de redefinição.",
+                    )
+                    return redirect("login:login")
+                else:
+                    messages.error(request, "Erro ao tentar enviar o e-mail.")
+            except Exception as e:
+                messages.error(request, f"Erro inesperado: {e}")
 
-        response = requests.post(
-            f"{API_URL}/auth/password/reset/", data={"email": email}
-        )
+        return render(request, "login/password_reset.html")
 
-        if response.status_code == 200:
-            messages.success(
-                request,
-                "Se o e-mail estiver cadastrado, enviaremos um link de redefinição.",
-            )
-            return redirect("login:login")
-        else:
-            messages.error(request, "Erro ao tentar enviar o e-mail. Tente novamente.")
+    def password_reset_confirm(self, request):
+        """
+        [GET] Renderiza formulário para nova senha.
+        [POST] Envia nova senha para o backend, usando `uid` e `token` da URL.
+        """
+        if request.method == "POST":
+            uid = request.POST.get("uid")
+            token = request.POST.get("token")
+            new_password = request.POST.get("new_password")
 
-    return render(request, "login/password_reset.html")
+            data = {"uid": uid, "token": token, "new_password": new_password}
 
+            try:
+                response = requests.post(
+                    f"{settings.API_URL}/auth/password/reset/confirm/", data=data
+                )
+                if response.status_code == 200:
+                    messages.success(request, "Senha redefinida com sucesso.")
+                    return redirect("login:login")
+                messages.error(request, "Erro ao redefinir a senha. Verifique os dados.")
+            except Exception as e:
+                messages.error(request, f"Erro inesperado: {e}")
 
-def password_reset_confirm_view(request):
-    if request.method == "POST":
-        uid = request.POST.get("uid")
-        token = request.POST.get("token")
-        new_password = request.POST.get("new_password")
-
-        data = {"uid": uid, "token": token, "new_password": new_password}
-
-        response = requests.post(f"{API_URL}/auth/password/reset/confirm/", data=data)
-
-        if response.status_code == 200:
-            messages.success(
-                request, "Senha redefinida com sucesso. Faça login novamente."
-            )
-            return redirect("login:login")
-        else:
-            messages.error(request, "Erro ao redefinir a senha. Verifique os dados.")
-
-    return render(request, "login/password_reset_confirm.html")
+        return render(request, "login/password_reset_confirm.html")
